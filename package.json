@@ -1,0 +1,28 @@
+{
+  "name": "claude-cvm",
+  "version": "1.0.0",
+  "description": "Claude Version Manager — manage multiple Claude Code versions per-terminal, like conda",
+  "keywords": [
+    "claude",
+    "claude-code",
+    "version-manager",
+    "anthropic",
+    "cli"
+  ],
+  "author": "zheyong",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zheyong/cvm.git"
+  },
+  "homepage": "https://github.com/zheyong/cvm#readme",
+  "scripts": {
+    "postinstall": "node install.mjs",
+    "preuninstall": "node uninstall.mjs"
+  },
+  "files": [
+    "cvm.sh",
+    "install.mjs",
+    "uninstall.mjs"
+  ]
+}
