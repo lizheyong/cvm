@@ -182,6 +182,10 @@ _cvm_list() {
 
   # cvm-managed versions
   local dir
+  # nullglob: zsh errors on unmatched glob by default, must guard
+  if [[ -n "$ZSH_VERSION" ]]; then
+    setopt local_options nullglob
+  fi
   for dir in "$CVM_DIR"/*/node_modules/.bin/claude; do
     [[ -x "$dir" ]] || continue
     found=1
