@@ -18,12 +18,13 @@ jobs:
           node-version: 20
           registry-url: https://registry.npmjs.org
 
-      - name: Extract version from tag
-        id: version
-        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
-
-      - name: Set package version
-        run: npm version ${{ steps.version.outputs.VERSION }} --no-git-tag-version
+      - name: Sync version from tag
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            npm version "$TAG_VERSION" --no-git-tag-version
+          fi
 
       - name: Publish to npm
         run: npm publish
