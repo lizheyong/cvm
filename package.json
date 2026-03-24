@@ -13,9 +13,9 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/zheyong/cvm.git"
+    "url": "git+https://github.com/lizheyong/cvm.git"
   },
-  "homepage": "https://github.com/zheyong/cvm#readme",
+  "homepage": "https://github.com/lizheyong/cvm#readme",
   "scripts": {
     "postinstall": "node install.mjs",
     "preuninstall": "node uninstall.mjs"
