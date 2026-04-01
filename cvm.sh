@@ -150,9 +150,24 @@ _cvm_deactivate() {
   export PATH="$CVM_OLD_PATH"
   unset CVM_ACTIVE
   unset CVM_OLD_PATH
+
+  # Refresh real system version on deactivate
+  local _v
+  _v=$(claude --version 2>/dev/null | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+  if [[ -n "$_v" ]]; then
+    echo "$_v" > "$CVM_DIR/.sys_version"
+    export CVM_SYS_VERSION="$_v"
+  fi
   export CVM_VERSION="${CVM_SYS_VERSION:-unknown}"
 
   echo -e "${_CVM_C_PEACH}✦${_CVM_C_RESET} ${_CVM_C_DIM}Deactivated claude@$old_version${_CVM_C_RESET} → system (${CVM_VERSION})"
+
+  # Warn if system claude is official binary
+  local _sys_claude
+  _sys_claude=$(command -v claude 2>/dev/null)
+  if [[ -n "$_sys_claude" ]] && ! head -1 "$_sys_claude" 2>/dev/null | grep -q node; then
+    echo -e "${_CVM_C_YELLOW}⚠ System claude is official binary (may miss cache). Consider: npm i -g @anthropic-ai/claude-code${_CVM_C_RESET}"
+  fi
 }
 
 # ── List ──
@@ -171,12 +186,37 @@ _cvm_list() {
     sys_claude=$(PATH="$CVM_OLD_PATH" command -v claude 2>/dev/null)
   fi
   if [[ -n "$sys_claude" ]]; then
-    local sys_ver="${CVM_SYS_VERSION:-?}"
+    # Always get the real system version, not the cached one
+    local sys_ver
     if [[ -z "$CVM_ACTIVE" ]]; then
-      echo -e "  ${_CVM_C_GREEN}▸${_CVM_C_RESET} ${_CVM_C_BOLD}${_CVM_C_GREEN}$sys_ver${_CVM_C_RESET}  ${_CVM_C_DIM}system · $sys_claude${_CVM_C_RESET}  ${_CVM_C_GREEN}● active${_CVM_C_RESET}"
+      sys_ver=$("$sys_claude" --version 2>/dev/null | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
     else
-      echo -e "    ${_CVM_C_DIM}$sys_ver  system · $sys_claude${_CVM_C_RESET}"
+      sys_ver=$(PATH="$CVM_OLD_PATH" "$sys_claude" --version 2>/dev/null | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
     fi
+    sys_ver="${sys_ver:-?}"
+    # Update cache while we're at it
+    if [[ "$sys_ver" != "?" ]]; then
+      echo "$sys_ver" > "$CVM_DIR/.sys_version"
+      export CVM_SYS_VERSION="$sys_ver"
+      if [[ -z "$CVM_ACTIVE" ]]; then
+        export CVM_VERSION="$sys_ver"
+      fi
+    fi
+    # Detect if system claude is npm or official binary
+    local sys_source="system"
+    local sys_warn=""
+    if head -1 "$sys_claude" 2>/dev/null | grep -q node; then
+      sys_source="npm"
+    else
+      sys_source="binary"
+      sys_warn="  ${_CVM_C_YELLOW}⚠ System claude is official binary (may miss cache). Consider: npm i -g @anthropic-ai/claude-code${_CVM_C_RESET}"
+    fi
+    if [[ -z "$CVM_ACTIVE" ]]; then
+      echo -e "  ${_CVM_C_GREEN}▸${_CVM_C_RESET} ${_CVM_C_BOLD}${_CVM_C_GREEN}$sys_ver${_CVM_C_RESET}  ${_CVM_C_DIM}$sys_source · $sys_claude${_CVM_C_RESET}  ${_CVM_C_GREEN}● active${_CVM_C_RESET}"
+    else
+      echo -e "    ${_CVM_C_DIM}$sys_ver  $sys_source · $sys_claude${_CVM_C_RESET}"
+    fi
+    [[ -n "$sys_warn" ]] && echo -e "$sys_warn"
     found=1
   fi
 
