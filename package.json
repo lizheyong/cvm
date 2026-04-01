@@ -1,6 +1,6 @@
 {
   "name": "claude-cvm",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Claude Version Manager — manage multiple Claude Code versions per-terminal, like conda",
   "keywords": [
     "claude",
